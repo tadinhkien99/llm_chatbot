@@ -3,6 +3,8 @@
 # @Filename:    config.py
 # @Author:      Kuro
 # @Time:        7/30/2024 11:24 PM
+from pydantic import BaseModel
+
 
 class ElasticConfig:
     index_config = {
@@ -14,7 +16,6 @@ class ElasticConfig:
         }
     }
     index_name = "documents"
-    max_len = 50
-    host = "localhost"
-    port = 9200
-    model_name = "sentence-transformers/all-MiniLM-L6-v2"
+
+class QueryRequest(BaseModel):
+    question: str

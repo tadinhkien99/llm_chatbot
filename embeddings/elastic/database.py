@@ -5,32 +5,33 @@
 # @Time:        7/30/2024 11:25 PM
 
 from elasticsearch import Elasticsearch, helpers
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from embeddings.elastic.config import ElasticConfig
 
 
 class EmbeddingDatabase:
-    def __init__(self, model, config, es_host='localhost', es_port=9200, index_name='documents'):
+    def __init__(self):
         """
         Initialize the EmbeddingIndexer with a SentenceTransformer model and Elasticsearch client.
         """
-        self.model = model
-        self.es = Elasticsearch([{'host': es_host, 'port': es_port}])
-        self.index_name = index_name
-        self.config = config
+        self.config = ElasticConfig()
+        self.client = Elasticsearch("http://localhost:9200")
+        self.index_name = self.config.index_name
 
     def create_index(self):
         """
         Create the Elasticsearch index with the appropriate mapping for dense vectors.
         """
-        if not self.es.indices.exists(index=self.index_name):
-            self.es.indices.create(index=self.index_name, body=self.config.index_config)
+        if not self.client.indices.exists(index=self.index_name):
+            self.client.indices.create(index=self.index_name, body=self.config.index_config)
 
     def split_into_chunks(self, text):
         """
         Split text into chunks of a specified maximum length.
         """
-        max_len = self.config.max_len
-        words = text.split()
-        chunks = [' '.join(words[i:i + max_len]) for i in range(0, len(words), max_len)]
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=512, chunk_overlap=256)
+        chunks = text_splitter.split_text(text)
         return chunks
 
     def index_chunks(self, chunks, embeddings):
@@ -48,4 +49,30 @@ class EmbeddingDatabase:
             for chunk, embedding in zip(chunks, embeddings)
         ]
 
-        helpers.bulk(self.es, actions)
+        helpers.bulk(self.client, actions)
+
+    def search(self, embedding, n_results=5):
+        """
+        Search for similar documents given a query.
+        """
+
+        script_query = {
+            "script_score": {
+                "query": {"match_all": {}},
+                "script": {
+                    "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
+                    "params": {"query_vector": embedding}
+                }
+            }
+        }
+
+        response = self.client.search(
+            index=self.index_name,
+            body={
+                "size": n_results,
+                "query": script_query,
+                "_source": {"includes": ["text"]}
+            }
+        )
+
+        return response['hits']['hits']
