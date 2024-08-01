@@ -8,10 +8,10 @@ from openai import OpenAI
 from models.openAI_model.config import OpenAIConfig
 
 
-class EmbeddingIndexer:
+class OpenAIEmbedding:
     def __init__(self):
         """
-        Initialize the EmbeddingIndexer with a SentenceTransformer model and Elasticsearch client.
+        Initialize the OpenAIEmbedding with a SentenceTransformer model and Elasticsearch client.
         """
         self.client = OpenAI(api_key=OpenAIConfig.openai_api_key)
 

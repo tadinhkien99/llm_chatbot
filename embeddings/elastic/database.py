@@ -11,13 +11,13 @@ from embeddings.elastic.config import ElasticConfig
 
 
 class EmbeddingDatabase:
-    def __init__(self):
+    def __init__(self, client):
         """
-        Initialize the EmbeddingIndexer with a SentenceTransformer model and Elasticsearch client.
+        Initialize the OpenAIEmbedding with a SentenceTransformer model and Elasticsearch self.client.
         """
         self.config = ElasticConfig()
-        self.client = Elasticsearch("http://localhost:9200")
         self.index_name = self.config.index_name
+        self.client = client      
 
     def create_index(self):
         """
