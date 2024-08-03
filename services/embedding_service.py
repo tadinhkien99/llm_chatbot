@@ -11,14 +11,14 @@ from embeddings.elastic.database import EmbeddingDatabase
 
 
 class EmbeddingService:
-    def __init__(self, client):
+    def __init__(self, embedding_client, openai_client):
         """
         Initialize the EmbeddingService with an EmbeddingDatabase instance.
         """
         self.elasticsearch_config = ElasticConfig()
-        self.embeddings = OpenAIEmbedding()
+        self.embeddings = OpenAIEmbedding(openai_client)
 
-        self.elasticsearch_database = EmbeddingDatabase(client)
+        self.elasticsearch_database = EmbeddingDatabase(embedding_client)
         self.elasticsearch_database.create_index()
 
     def load_data(self, data_path):
@@ -34,5 +34,5 @@ class EmbeddingService:
         Index a document into Elasticsearch.
         """
         chunks = self.elasticsearch_database.split_into_chunks(text)
-        embeddings = self.embeddings.create_embedding(chunks)
+        embeddings = self.embeddings.create_embedding_documents(chunks)
         self.elasticsearch_database.index_chunks(chunks, embeddings)

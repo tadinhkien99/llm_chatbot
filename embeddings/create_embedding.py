@@ -9,18 +9,28 @@ from models.openAI_model.config import OpenAIConfig
 
 
 class OpenAIEmbedding:
-    def __init__(self):
+    def __init__(self, client):
         """
         Initialize the OpenAIEmbedding with a SentenceTransformer model and Elasticsearch client.
         """
-        self.client = OpenAI(api_key=OpenAIConfig.openai_api_key)
+        self.client = client
+        self.batch_size = 32
 
-    def create_embedding(self, sentences):
+    def create_embedding_documents(self, sentences):
         """
         Create embeddings for a list of sentences.
         """
         embeddings = []
-        for text in sentences:
-            embedding = self.client.embeddings.create(input=[text], model="text-embedding-3-small").data[0].embedding
-            embeddings.append(embedding)
+        for i in range(0, len(sentences), self.batch_size):
+            batch_sentences = sentences[i:i + self.batch_size]
+            batch_embedding = self.client.embeddings.create(input=batch_sentences, model="text-embedding-3-small").data
+            batch_embedding = [embedding.embedding for embedding in batch_embedding]
+            embeddings.extend(batch_embedding)
         return embeddings
+
+    def create_embedding(self, sentence):
+        """
+        Create an embedding for a single sentence.
+        """
+        embedding = self.client.embeddings.create(input=sentence, model="text-embedding-3-small").data[0].embedding
+        return embedding

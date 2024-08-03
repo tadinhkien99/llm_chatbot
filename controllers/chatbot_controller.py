@@ -8,8 +8,8 @@ from services.chatbot_service import ChatbotService
 
 
 class ChatbotController:
-    def __init__(self, client):
-        self.chatbot_service = ChatbotService(EmbeddingDatabase(client))
+    def __init__(self, embedding_client, openai_client):
+        self.chatbot_service = ChatbotService(EmbeddingDatabase(embedding_client), openai_client)
 
     def handle_chat(self, user_query: str):
         response = self.chatbot_service.get_response(user_query)

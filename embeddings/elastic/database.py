@@ -25,6 +25,10 @@ class EmbeddingDatabase:
         """
         if not self.client.indices.exists(index=self.index_name):
             self.client.indices.create(index=self.index_name, body=self.config.index_config)
+        # else:
+        #     # Delete and recreate the index if it already exists
+        #     self.client.indices.delete(index=self.index_name)
+        #     self.client.indices.create(index=self.index_name, body=self.config.index_config)
 
     def split_into_chunks(self, text):
         """
@@ -43,7 +47,7 @@ class EmbeddingDatabase:
                 "_index": self.index_name,
                 "_source": {
                     "text": chunk,
-                    "embedding": embedding.tolist()
+                    "embedding": embedding
                 }
             }
             for chunk, embedding in zip(chunks, embeddings)

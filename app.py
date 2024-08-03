@@ -3,25 +3,28 @@
 # @Filename:    app.py
 # @Author:      Kuro
 # @Time:        7/30/2024 11:41 PM
+
 import uvicorn
 from elasticsearch import Elasticsearch
 from fastapi import FastAPI
+from openai import OpenAI
 
 from controllers.chatbot_controller import ChatbotController
 from embeddings.elastic.config import ElasticConfig
-from services.embedding_service import EmbeddingService
+from models.openAI_model.config import OpenAIConfig
 
 app = FastAPI()
 
-client = Elasticsearch(
+embedding_client = Elasticsearch(
     hosts=ElasticConfig.hosts,
-    # api_key=self.config.api_key,
-    verify_certs=False, request_timeout=10000
+    api_key=ElasticConfig.api_key,
+    verify_certs=False, request_timeout=30
 )
-document_service = EmbeddingService(client)
-document_service.load_data(data_path="dataset")
+openai_client = OpenAI(api_key=OpenAIConfig.openai_api_key)
+# document_service = EmbeddingService(embedding_client, openai_client)
+# document_service.load_data(data_path="dataset")
 
-chatbot = ChatbotController(client)
+chatbot = ChatbotController(embedding_client, openai_client)
 
 
 @app.post("/chat")
