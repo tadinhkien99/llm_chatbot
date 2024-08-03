@@ -28,8 +28,9 @@ class ElasticConfig:
 
     }
     index_name = "documents"
-    hosts = "http://localhost:9200/"
+    # hosts = "http://localhost:9200/"
     # hosts = "https://10.142.0.2:9200/"
+    hosts = "http://35.227.17.180:5601/"
     api_key = os.getenv("ELASTIC_API_KEY")
 
 

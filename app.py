@@ -12,6 +12,7 @@ from openai import OpenAI
 from controllers.chatbot_controller import ChatbotController
 from embeddings.elastic.config import ElasticConfig
 from models.openAI_model.config import OpenAIConfig
+from services.embedding_service import EmbeddingService
 
 app = FastAPI()
 
@@ -21,8 +22,8 @@ embedding_client = Elasticsearch(
     verify_certs=False, request_timeout=30
 )
 openai_client = OpenAI(api_key=OpenAIConfig.openai_api_key)
-# document_service = EmbeddingService(embedding_client, openai_client)
-# document_service.load_data(data_path="dataset")
+document_service = EmbeddingService(embedding_client, openai_client)
+document_service.load_data(data_path="dataset")
 
 chatbot = ChatbotController(embedding_client, openai_client)
 
